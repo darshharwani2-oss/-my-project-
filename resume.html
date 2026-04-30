@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resume Builder</title>
+  <style>
+    /* ─── Reset & Base ─────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    input, textarea { font-family: inherit; font-size: 0.85rem; }
+    button { cursor: pointer; font-family: inherit; }
+
+    /* ─── Header ────────────────────────────────────────── */
+    #app-header {
+      background: #16213e;
+      padding: 0 24px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #1e3a5f;
+      flex-shrink: 0;
+    }
+    #app-header h1 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #60a5fa;
+      letter-spacing: 0.5px;
+      margin-right: auto;
+    }
+    .tpl-btn {
+      background: transparent;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+    }
+    .tpl-btn:hover { border-color: #60a5fa; color: #60a5fa; }
+    .tpl-btn.active { background: #1d4ed8; border-color: #3b82f6; color: #fff; }
+    #btn-download {
+      background: #16a34a;
+      border: none;
+      color: white;
+      padding: 8px 18px;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+      margin-left: 8px;
+    }
+    #btn-download:hover { background: #15803d; }
+    #btn-download:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
+
+    /* ─── App Body ──────────────────────────────────────── */
+    #app-body { display: flex; flex: 1; overflow: hidden; }
+
+    /* ─── Editor Panel ──────────────────────────────────── */
+    #editor {
+      width: 38%;
+      min-width: 300px;
+      background: #1e293b;
+      overflow-y: auto;
+      border-right: 1px solid #334155;
+      flex-shrink: 0;
+    }
+    #editor::-webkit-scrollbar { width: 6px; }
+    #editor::-webkit-scrollbar-track { background: #1e293b; }
+    #editor::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+    /* Accordion */
+    .accordion { border-bottom: 1px solid #334155; }
+    .accordion-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      cursor: pointer;
+      user-select: none;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #94a3b8;
+      transition: color 0.15s, background 0.15s;
+    }
+    .accordion-header:hover { color: #e2e8f0; background: #243044; }
+    .accordion-header.open { color: #60a5fa; }
+    .accordion-chevron { transition: transform 0.2s; font-size: 0.65rem; }
+    .accordion-header.open .accordion-chevron { transform: rotate(180deg); }
+    .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .accordion-body.open { max-height: 3000px; }
+    .accordion-content { padding: 4px 20px 16px; }
+
+    /* Form fields */
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+    .field-row.full { grid-template-columns: 1fr; }
+    .field { display: flex; flex-direction: column; gap: 4px; }
+    .field label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #64748b;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+    .field input, .field textarea {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 5px;
+      color: #e2e8f0;
+      padding: 7px 10px;
+      outline: none;
+      transition: border-color 0.15s;
+      resize: vertical;
+    }
+    .field input:focus, .field textarea:focus { border-color: #3b82f6; }
+    .field textarea { min-height: 80px; line-height: 1.5; }
+
+    /* Dynamic entry cards */
+    .entry-card {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .entry-card .field { margin-bottom: 8px; }
+    .btn-remove {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      color: #ef4444;
+      font-size: 1rem;
+      line-height: 1;
+      padding: 2px 5px;
+      border-radius: 3px;
+      transition: background 0.15s;
+    }
+    .btn-remove:hover { background: #450a0a; }
+    .btn-add {
+      width: 100%;
+      margin-top: 4px;
+      background: transparent;
+      border: 1px dashed #334155;
+      color: #60a5fa;
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+    }
+    .btn-add:hover { background: #172554; border-color: #3b82f6; }
+
+    /* ─── Preview Panel ─────────────────────────────────── */
+    #preview-panel {
+      flex: 1;
+      background: #cbd5e1;
+      overflow-y: auto;
+      padding: 32px 24px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+    #preview-inner {
+      width: 700px;
+      min-height: 990px;
+      background: white;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.3);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       TEMPLATE: MODERN
+    ══════════════════════════════════════════════════════ */
+    .tpl-modern {
+      display: flex;
+      min-height: 990px;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+    }
+
+    /* Sidebar */
+    .tpl-modern .m-sidebar {
+      width: 240px;
+      min-width: 240px;
+      background: #1e3a5f;
+      color: #e2e8f0;
+      padding: 36px 22px;
+    }
+    .tpl-modern .m-avatar {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: #3b82f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 0 auto 18px;
+      letter-spacing: 1px;
+    }
+    .tpl-modern .m-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      text-align: center;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .tpl-modern .m-title {
+      font-size: 0.75rem;
+      color: #93c5fd;
+      text-align: center;
+      margin-bottom: 28px;
+      line-height: 1.4;
+    }
+    .tpl-modern .m-section {
+      margin-bottom: 24px;
+    }
+    .tpl-modern .m-section-label {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: #60a5fa;
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #2d5a8e;
+    }
+    .tpl-modern .m-contact-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 7px;
+      font-size: 0.76rem;
+      color: #cbd5e1;
+      margin-bottom: 8px;
+      line-height: 1.4;
+      word-break: break-all;
+    }
+    .tpl-modern .m-contact-item .icon {
+      color: #93c5fd;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .tpl-modern .m-skill {
+      display: inline-block;
+      background: #1e4d7b;
+      color: #bae6fd;
+      font-size: 0.7rem;
+      padding: 3px 9px;
+      border-radius: 99px;
+      margin: 3px 3px 0 0;
+      line-height: 1.5;
+    }
+
+    /* Main content */
+    .tpl-modern .m-main {
+      flex: 1;
+      padding: 36px 30px;
+    }
+    .tpl-modern .m-block {
+      margin-bottom: 26px;
+    }
+    .tpl-modern .m-block-label {
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      color: #1d4ed8;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #dbeafe;
+    }
+    .tpl-modern .m-summary {
+      font-size: 0.85rem;
+      color: #374151;
+      line-height: 1.75;
+    }
+    .tpl-modern .m-entry {
+      margin-bottom: 16px;
+    }
+    .tpl-modern .m-entry-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 1px;
+    }
+    .tpl-modern .m-entry-role {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #111827;
+    }
+    .tpl-modern .m-entry-period {
+      font-size: 0.73rem;
+      color: #6b7280;
+      white-space: nowrap;
+      margin-left: 8px;
+    }
+    .tpl-modern .m-entry-company {
+      font-size: 0.78rem;
+      color: #4b5563;
+      margin-bottom: 6px;
+    }
+    .tpl-modern .m-entry-bullets {
+      padding-left: 16px;
+      margin-top: 4px;
+    }
+    .tpl-modern .m-entry-bullets li {
+      font-size: 0.81rem;
+      color: #374151;
+      line-height: 1.65;
+      margin-bottom: 3px;
+    }
+    .tpl-modern .m-edu-school {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #111827;
+    }
+    .tpl-modern .m-edu-degree {
+      font-size: 0.8rem;
+      color: #4b5563;
+      margin-top: 2px;
+    }
+    .tpl-modern .m-edu-note {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header id="app-header">
+  <h1>Resume Builder</h1>
+  <button class="tpl-btn active" data-tpl="modern">Modern</button>
+  <button class="tpl-btn" data-tpl="classic">Classic</button>
+  <button class="tpl-btn" data-tpl="minimal">Minimal</button>
+  <button id="btn-download">⬇ Download PDF</button>
+</header>
+
+<!-- ── App Body ── -->
+<div id="app-body">
+
+  <!-- Editor -->
+  <div id="editor">
+
+    <div class="accordion" id="acc-personal">
+      <div class="accordion-header open" onclick="toggleAccordion('acc-personal')">
+        Personal Info <span class="accordion-chevron">▲</span>
+      </div>
+      <div class="accordion-body open">
+        <div class="accordion-content">
+          <div class="field-row">
+            <div class="field"><label>Full Name</label><input type="text" data-field="name"></div>
+            <div class="field"><label>Job Title</label><input type="text" data-field="jobTitle"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Email</label><input type="email" data-field="email"></div>
+            <div class="field"><label>Phone</label><input type="tel" data-field="phone"></div>
+          </div>
+          <div class="field-row">
+            <div class="field"><label>Location</label><input type="text" data-field="location"></div>
+            <div class="field"><label>LinkedIn</label><input type="text" data-field="linkedin"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion" id="acc-summary">
+      <div class="accordion-header open" onclick="toggleAccordion('acc-summary')">
+        Summary <span class="accordion-chevron">▲</span>
+      </div>
+      <div class="accordion-body open">
+        <div class="accordion-content">
+          <div class="field-row full">
+            <div class="field">
+              <label>Professional Summary</label>
+              <textarea data-field="summary" rows="4"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion" id="acc-exp">
+      <div class="accordion-header open" onclick="toggleAccordion('acc-exp')">
+        Experience <span class="accordion-chevron">▲</span>
+      </div>
+      <div class="accordion-body open">
+        <div class="accordion-content">
+          <div id="exp-cards"></div>
+          <button class="btn-add" onclick="addEntry('experience')">+ Add Experience</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion" id="acc-edu">
+      <div class="accordion-header open" onclick="toggleAccordion('acc-edu')">
+        Education <span class="accordion-chevron">▲</span>
+      </div>
+      <div class="accordion-body open">
+        <div class="accordion-content">
+          <div id="edu-cards"></div>
+          <button class="btn-add" onclick="addEntry('education')">+ Add Education</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="accordion" id="acc-skills">
+      <div class="accordion-header open" onclick="toggleAccordion('acc-skills')">
+        Skills <span class="accordion-chevron">▲</span>
+      </div>
+      <div class="accordion-body open">
+        <div class="accordion-content">
+          <div class="field-row full">
+            <div class="field">
+              <label>Skills (comma-separated)</label>
+              <textarea data-field="skills" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /editor -->
+
+  <!-- Preview -->
+  <div id="preview-panel">
+    <div id="preview-inner">
+      <!-- rendered by JS -->
+    </div>
+  </div>
+
+</div><!-- /app-body -->
+
+<!-- JS will go here in the next step -->
+
+</body>
+</html>
