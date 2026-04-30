@@ -341,6 +341,30 @@
       color: #6b7280;
       margin-top: 2px;
     }
+    .tpl-modern .m-avatar-img {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
+      margin: 0 auto 18px;
+      border: 3px solid #3b82f6;
+    }
+
+    /* Photo upload */
+    .photo-upload-area {
+      background: #0f172a;
+      border: 1px dashed #334155;
+      border-radius: 5px;
+      padding: 11px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+      font-size: 0.82rem;
+      color: #64748b;
+    }
+    .photo-upload-area:hover { border-color: #3b82f6; color: #60a5fa; }
+    .photo-upload-area.has-photo { border-style: solid; border-color: #22c55e; color: #22c55e; }
 
     /* ══════════════════════════════════════════════════════
        TEMPLATE: CLASSIC
@@ -550,6 +574,16 @@
             <div class="field"><label>Location</label><input type="text" data-field="location"></div>
             <div class="field"><label>LinkedIn</label><input type="text" data-field="linkedin"></div>
           </div>
+          <div class="field-row full">
+            <div class="field">
+              <label>Profile Photo (Modern template)</label>
+              <div class="photo-upload-area" id="photo-upload-area"
+                   onclick="document.getElementById('photo-input').click()">
+                <span id="photo-upload-label">📷 Click to upload photo</span>
+              </div>
+              <input type="file" id="photo-input" accept="image/*" style="display:none">
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -628,6 +662,7 @@
 let currentTemplate = 'modern';
 
 let resume = {
+  photo:    null,
   name:     'Alex Johnson',
   jobTitle: 'Senior Software Engineer',
   email:    'alex@example.com',
@@ -706,7 +741,9 @@ function renderModern(r) {
   return `
   <div class="tpl-modern">
     <div class="m-sidebar">
-      <div class="m-avatar">${esc(initials(r.name))}</div>
+      ${r.photo
+        ? `<img class="m-avatar-img" src="${r.photo}" alt="photo">`
+        : `<div class="m-avatar">${esc(initials(r.name))}</div>`}
       <div class="m-name">${esc(r.name) || 'Your Name'}</div>
       <div class="m-title">${esc(r.jobTitle)}</div>
       <div class="m-section">
@@ -952,6 +989,20 @@ document.getElementById('btn-download').addEventListener('click', async () => {
     btn.disabled = false;
     btn.textContent = '⬇ Download PDF';
   }
+});
+
+// ─── Photo upload ─────────────────────────────────────────
+document.getElementById('photo-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    resume.photo = ev.target.result;
+    document.getElementById('photo-upload-area').classList.add('has-photo');
+    document.getElementById('photo-upload-label').textContent = '✓ ' + file.name;
+    renderPreview();
+  };
+  reader.readAsDataURL(file);
 });
 
 // ─── Init ────────────────────────────────────────────────
