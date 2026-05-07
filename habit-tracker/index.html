@@ -4,69 +4,58 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Habit Tracker</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     :root {
-      --bg:         #0d0d11;
-      --surface:    #16161d;
-      --surface2:   #1e1e28;
-      --border:     #2a2a38;
-      --text:       #e8e8f0;
-      --muted:      #888899;
-      --accent:     #6366f1;
-      --green:      #10b981;
-      --yellow:     #f59e0b;
-      --r:          12px;
-      --r-sm:       8px;
+      --bg:       #0d0d11;
+      --surface:  #16161d;
+      --surface2: #1e1e28;
+      --border:   #2a2a38;
+      --text:     #e8e8f0;
+      --muted:    #888899;
+      --accent:   #6366f1;
+      --green:    #10b981;
+      --yellow:   #f59e0b;
+      --red:      #ef4444;
+      --r:        12px;
+      --r-sm:     8px;
     }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      font-size: 16px;
-      line-height: 1.5;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; font-size: 16px; line-height: 1.5;
     }
 
     /* ── Nav ── */
     .nav {
       position: sticky; top: 0; z-index: 100;
-      background: var(--bg);
-      border-bottom: 1px solid var(--border);
-      padding: 0 16px;
+      background: var(--bg); border-bottom: 1px solid var(--border);
+      padding: 0 12px;
     }
     .nav-inner {
-      max-width: 620px; margin: 0 auto;
-      display: flex; gap: 4px;
-      padding: 10px 0;
+      max-width: 660px; margin: 0 auto;
+      display: flex; gap: 3px; padding: 10px 0;
     }
     .nav-tab {
-      flex: 1; padding: 8px 10px;
+      flex: 1; padding: 7px 6px;
       border: none; background: transparent;
       color: var(--muted); border-radius: var(--r-sm);
-      cursor: pointer; font-size: 14px; font-weight: 500;
-      transition: all .15s;
+      cursor: pointer; font-size: 13px; font-weight: 500;
+      transition: all .15s; white-space: nowrap;
     }
     .nav-tab.active { background: var(--surface2); color: var(--text); }
     .nav-tab:hover:not(.active) { background: var(--surface); color: var(--text); }
 
     /* ── Layout ── */
-    .main {
-      max-width: 620px; margin: 0 auto;
-      padding: 24px 16px 48px;
-    }
+    .main { max-width: 660px; margin: 0 auto; padding: 24px 16px 60px; }
     .section { display: none; }
     .section.active { display: block; }
 
     /* ── Card ── */
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 20px;
-      margin-bottom: 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 20px; margin-bottom: 16px;
     }
     .card-title {
       font-size: 11px; font-weight: 700;
@@ -76,37 +65,19 @@
 
     /* ── Today header ── */
     .today-header { margin-bottom: 24px; }
-    .today-date {
-      font-size: 28px; font-weight: 700;
-      letter-spacing: -.02em;
-    }
+    .today-date { font-size: 28px; font-weight: 700; letter-spacing: -.02em; }
     .today-weekday { font-size: 15px; color: var(--muted); margin-top: 2px; }
-    .progress-row {
-      display: flex; align-items: center; gap: 12px;
-      margin-top: 14px;
-    }
-    .progress-bar {
-      flex: 1; height: 6px;
-      background: var(--border); border-radius: 3px; overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%; border-radius: 3px;
-      background: var(--green);
-      transition: width .4s ease;
-    }
-    .progress-label {
-      font-size: 13px; color: var(--muted); white-space: nowrap;
-    }
+    .progress-row { display: flex; align-items: center; gap: 12px; margin-top: 14px; }
+    .progress-bar { flex: 1; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 3px; background: var(--green); transition: width .4s ease; }
+    .progress-label { font-size: 13px; color: var(--muted); white-space: nowrap; }
 
     /* ── Habit list ── */
     .habit-list { display: flex; flex-direction: column; gap: 6px; }
-
     .habit-item {
       display: flex; align-items: center; gap: 14px;
-      padding: 14px 16px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
+      padding: 14px 16px; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: var(--r-sm);
       transition: border-color .2s, background .2s;
     }
     .habit-item.done {
@@ -122,119 +93,122 @@
     /* ── Checkbox ── */
     .checkbox {
       width: 26px; height: 26px; flex-shrink: 0;
-      border: 2px solid var(--border);
-      border-radius: 7px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .18s;
-      user-select: none;
+      border: 2px solid var(--border); border-radius: 7px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: all .18s; user-select: none;
     }
     .checkbox:hover { border-color: var(--green); }
-    .checkbox.checked {
-      background: var(--green); border-color: var(--green);
-      animation: pop .2s ease;
-    }
+    .checkbox.checked { background: var(--green); border-color: var(--green); animation: pop .2s ease; }
     .checkbox .tick { display: none; color: #fff; font-size: 15px; font-weight: 700; }
     .checkbox.checked .tick { display: block; }
-
     @keyframes pop {
-      0%   { transform: scale(.75); }
-      55%  { transform: scale(1.2); }
-      100% { transform: scale(1); }
+      0%  { transform: scale(.75); }
+      55% { transform: scale(1.2); }
+      100%{ transform: scale(1);   }
     }
 
     /* ── Number control ── */
-    .num-ctrl {
-      display: flex; align-items: center; gap: 6px;
-    }
+    .num-ctrl { display: flex; align-items: center; gap: 6px; }
     .num-btn {
       width: 34px; height: 34px; flex-shrink: 0;
-      border: 1px solid var(--border);
-      background: var(--surface); color: var(--text);
-      border-radius: 7px; cursor: pointer;
+      border: 1px solid var(--border); background: var(--surface);
+      color: var(--text); border-radius: 7px; cursor: pointer;
       font-size: 20px; font-weight: 300;
       display: flex; align-items: center; justify-content: center;
-      transition: all .15s; line-height: 1;
+      transition: all .15s;
     }
     .num-btn:hover { border-color: var(--accent); background: var(--surface2); }
     .num-val {
       font-size: 20px; font-weight: 700;
-      min-width: 38px; text-align: center;
-      transition: color .2s;
+      min-width: 38px; text-align: center; transition: color .2s;
     }
     .num-val.goal { color: var(--green); }
+    /* editable number input for running */
+    .num-input {
+      font-size: 20px; font-weight: 700;
+      width: 60px; text-align: center;
+      background: transparent; border: none; border-bottom: 1px solid var(--border);
+      color: var(--text); outline: none; transition: color .2s, border-color .2s;
+      padding: 2px 4px;
+    }
+    .num-input:focus { border-color: var(--accent); }
+    .num-input.goal { color: var(--green); }
+    .num-input::-webkit-inner-spin-button,
+    .num-input::-webkit-outer-spin-button { opacity: 0; width: 0; }
     .num-unit { font-size: 12px; color: var(--muted); }
 
-    /* ── Calendar ── */
-    .cal-nav {
-      display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 18px;
+    /* ── Weight card ── */
+    .weight-row {
+      display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
     }
+    .weight-input-wrap {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 10px 14px; flex: 1;
+    }
+    .weight-input {
+      flex: 1; font-size: 22px; font-weight: 700;
+      background: transparent; border: none; color: var(--text);
+      outline: none; min-width: 0; width: 100%;
+    }
+    .weight-input::placeholder { color: var(--border); font-weight: 400; font-size: 18px; }
+    .weight-input::-webkit-inner-spin-button { opacity: 0; }
+    .weight-kg-label { font-size: 14px; color: var(--muted); flex-shrink: 0; }
+    .weight-stats { display: flex; flex-direction: column; gap: 8px; }
+    .weight-stat-row {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 14px;
+    }
+    .weight-stat-lbl { color: var(--muted); }
+    .weight-stat-val { font-weight: 600; }
+    .weight-stat-val.up   { color: var(--red); }
+    .weight-stat-val.down { color: var(--green); }
+    .weight-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 8px 0; }
+
+    /* ── Calendar ── */
+    .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
     .cal-month-title { font-size: 18px; font-weight: 600; }
     .cal-arrow {
-      width: 36px; height: 36px;
-      border: 1px solid var(--border); background: var(--surface2);
-      color: var(--text); border-radius: var(--r-sm);
-      cursor: pointer; font-size: 18px;
-      display: flex; align-items: center; justify-content: center;
-      transition: all .15s;
+      width: 36px; height: 36px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--text);
+      border-radius: var(--r-sm); cursor: pointer; font-size: 18px;
+      display: flex; align-items: center; justify-content: center; transition: all .15s;
     }
     .cal-arrow:hover { border-color: var(--accent); }
-    .cal-weekdays {
-      display: grid; grid-template-columns: repeat(7,1fr);
-      gap: 4px; margin-bottom: 6px;
-    }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; margin-bottom: 6px; }
     .cal-wd {
       text-align: center; font-size: 11px; font-weight: 600;
       color: var(--muted); padding: 4px 0;
       text-transform: uppercase; letter-spacing: .05em;
     }
-    .cal-grid {
-      display: grid; grid-template-columns: repeat(7,1fr); gap: 4px;
-    }
+    .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); gap: 4px; }
     .cal-day {
-      aspect-ratio: 1;
-      border-radius: 7px;
+      aspect-ratio: 1; border-radius: 7px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 500;
-      transition: transform .12s;
+      font-size: 13px; font-weight: 500; transition: transform .12s;
     }
-    .cal-day.empty    { background: transparent; }
-    .cal-day.future   { background: var(--surface); color: var(--border); }
-    .cal-day.gray     { background: var(--surface2); color: var(--muted); cursor: pointer; }
-    .cal-day.partial  {
-      background: rgba(245,158,11,.18);
-      color: var(--yellow);
-      border: 1px solid rgba(245,158,11,.3);
-      cursor: pointer;
+    .cal-day.empty   { background: transparent; }
+    .cal-day.future  { background: var(--surface); color: var(--border); }
+    .cal-day.gray    { background: var(--surface2); color: var(--muted); cursor: pointer; }
+    .cal-day.partial {
+      background: rgba(245,158,11,.18); color: var(--yellow);
+      border: 1px solid rgba(245,158,11,.3); cursor: pointer;
     }
     .cal-day.complete {
-      background: rgba(16,185,129,.2);
-      color: var(--green);
-      border: 1px solid rgba(16,185,129,.35);
-      cursor: pointer;
+      background: rgba(16,185,129,.2); color: var(--green);
+      border: 1px solid rgba(16,185,129,.35); cursor: pointer;
     }
     .cal-day.today-ring { outline: 2px solid var(--accent); outline-offset: 2px; }
-    .cal-day.gray:hover,
-    .cal-day.partial:hover,
-    .cal-day.complete:hover { transform: scale(1.12); }
-
-    .cal-legend {
-      display: flex; gap: 18px; margin-top: 14px;
-      font-size: 12px; color: var(--muted);
-    }
+    .cal-day.gray:hover, .cal-day.partial:hover, .cal-day.complete:hover { transform: scale(1.12); }
+    .cal-legend { display: flex; gap: 18px; margin-top: 14px; font-size: 12px; color: var(--muted); }
     .leg { display: flex; align-items: center; gap: 6px; }
     .leg-dot { width: 12px; height: 12px; border-radius: 3px; }
-    .cal-hint {
-      text-align: center; font-size: 12px; color: var(--muted);
-      margin-top: 10px;
-    }
+    .cal-hint { text-align: center; font-size: 12px; color: var(--muted); margin-top: 10px; }
 
     /* ── Stats ── */
     .streak-row {
-      display: flex; align-items: center;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 0; border-bottom: 1px solid var(--border);
     }
     .streak-row:last-child { border-bottom: none; }
     .streak-name { display: flex; align-items: center; gap: 8px; font-size: 15px; }
@@ -242,64 +216,97 @@
     .streak-cur { font-size: 22px; font-weight: 700; color: var(--accent); }
     .streak-cur small { font-size: 12px; font-weight: 400; color: var(--muted); }
     .streak-best { font-size: 11px; color: var(--muted); margin-top: 1px; }
-
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .stat-box {
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 14px 16px;
-    }
+    .stat-box { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r-sm); padding: 14px 16px; }
     .stat-lbl { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-    .stat-val {
-      font-size: 28px; font-weight: 700; letter-spacing: -.02em;
-    }
+    .stat-val { font-size: 28px; font-weight: 700; letter-spacing: -.02em; }
     .stat-val small { font-size: 13px; font-weight: 400; color: var(--muted); margin-left: 3px; }
 
-    /* ── Data section ── */
+    /* ── Progress tab ── */
+    .range-pills {
+      display: flex; gap: 6px; margin-bottom: 16px;
+    }
+    .range-pill {
+      padding: 5px 12px; border: 1px solid var(--border);
+      background: var(--surface2); color: var(--muted);
+      border-radius: 20px; cursor: pointer; font-size: 13px;
+      transition: all .15s;
+    }
+    .range-pill.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .chart-wrap { position: relative; height: 220px; margin-bottom: 16px; }
+    .chart-offline {
+      display: flex; align-items: center; justify-content: center;
+      height: 120px; font-size: 13px; color: var(--muted); text-align: center;
+      border: 1px dashed var(--border); border-radius: var(--r-sm);
+      margin-bottom: 16px; padding: 16px;
+    }
+    .progress-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 4px; }
+    .consist-row { margin-bottom: 14px; }
+    .consist-row:last-child { margin-bottom: 0; }
+    .consist-header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 6px;
+    }
+    .consist-name { font-size: 14px; display: flex; align-items: center; gap: 6px; }
+    .consist-pct  { font-size: 14px; font-weight: 700; color: var(--accent); }
+    .consist-bar  { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+    .consist-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width .5s ease; }
+
+    /* ── Data / Settings ── */
     .data-btn {
       width: 100%; padding: 14px 18px;
-      border: 1px solid var(--border);
-      background: var(--surface2); color: var(--text);
-      border-radius: var(--r-sm); cursor: pointer;
-      font-size: 15px; font-weight: 500;
+      border: 1px solid var(--border); background: var(--surface2); color: var(--text);
+      border-radius: var(--r-sm); cursor: pointer; font-size: 15px; font-weight: 500;
       text-align: left; margin-bottom: 10px;
-      display: flex; align-items: center; gap: 14px;
-      transition: all .15s;
+      display: flex; align-items: center; gap: 14px; transition: all .15s;
     }
     .data-btn:hover { border-color: var(--accent); background: rgba(99,102,241,.06); }
     .data-btn .btn-icon { font-size: 22px; flex-shrink: 0; }
     .data-btn .btn-sub { font-size: 12px; color: var(--muted); font-weight: 400; margin-top: 2px; }
-
     .data-viewer {
-      display: none;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: var(--r-sm);
-      padding: 16px;
+      display: none; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r-sm); padding: 16px;
       font-family: 'SFMono-Regular', 'Consolas', monospace;
       font-size: 13px; line-height: 1.7;
       white-space: pre-wrap; word-break: break-all;
-      max-height: 420px; overflow-y: auto;
-      color: var(--muted); margin-top: 4px;
+      max-height: 420px; overflow-y: auto; color: var(--muted); margin-top: 4px;
     }
     .data-viewer.open { display: block; }
+
+    /* ── Settings inputs ── */
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+    }
+    .setting-row:last-child { border-bottom: none; }
+    .setting-lbl { font-size: 14px; }
+    .setting-lbl small { display: block; font-size: 12px; color: var(--muted); }
+    .setting-input {
+      width: 90px; padding: 8px 10px; text-align: right;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r-sm); color: var(--text); font-size: 15px; font-weight: 600;
+      outline: none; transition: border-color .15s;
+    }
+    .setting-input:focus { border-color: var(--accent); }
+    .save-settings-btn {
+      width: 100%; padding: 12px; margin-top: 16px;
+      background: var(--accent); color: #fff; border: none;
+      border-radius: var(--r-sm); cursor: pointer; font-size: 14px; font-weight: 600;
+      transition: opacity .15s;
+    }
+    .save-settings-btn:hover { opacity: .88; }
 
     /* ── Modal ── */
     .overlay {
       display: none; position: fixed; inset: 0;
       background: rgba(0,0,0,.75); z-index: 200;
-      align-items: center; justify-content: center;
-      padding: 16px;
+      align-items: center; justify-content: center; padding: 16px;
     }
     .overlay.open { display: flex; }
     .modal {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--r);
-      padding: 24px;
-      width: 100%; max-width: 440px;
-      max-height: 92vh; overflow-y: auto;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 24px;
+      width: 100%; max-width: 440px; max-height: 92vh; overflow-y: auto;
     }
     .modal-hdr {
       display: flex; align-items: center;
@@ -307,55 +314,53 @@
     }
     .modal-title { font-size: 17px; font-weight: 600; }
     .modal-close {
-      width: 32px; height: 32px;
-      border: none; background: var(--surface2);
-      color: var(--muted); border-radius: 6px;
-      cursor: pointer; font-size: 18px; line-height: 1;
+      width: 32px; height: 32px; border: none; background: var(--surface2);
+      color: var(--muted); border-radius: 6px; cursor: pointer; font-size: 18px;
     }
     .modal-close:hover { color: var(--text); }
     .modal-row {
-      display: flex; align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       padding: 12px 0; border-bottom: 1px solid var(--border);
     }
     .modal-row:last-of-type { border-bottom: none; }
     .modal-lbl { font-size: 15px; display: flex; align-items: center; gap: 8px; }
-
+    .modal-weight-input {
+      width: 100px; padding: 8px 10px; text-align: right;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--r-sm); color: var(--text); font-size: 16px; font-weight: 600;
+      outline: none; transition: border-color .15s;
+    }
+    .modal-weight-input:focus { border-color: var(--accent); }
     .save-btn {
-      width: 100%; padding: 14px;
-      background: var(--accent); color: #fff;
-      border: none; border-radius: var(--r-sm);
-      cursor: pointer; font-size: 15px; font-weight: 600;
-      margin-top: 18px; transition: opacity .15s;
+      width: 100%; padding: 14px; background: var(--accent); color: #fff;
+      border: none; border-radius: var(--r-sm); cursor: pointer;
+      font-size: 15px; font-weight: 600; margin-top: 18px; transition: opacity .15s;
     }
     .save-btn:hover { opacity: .88; }
 
-    /* ── Hidden file input ── */
     #importFile { display: none; }
-
-    /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
-    /* ── Mobile ── */
     @media (max-width: 480px) {
-      .stats-grid { grid-template-columns: 1fr; }
+      .stats-grid, .progress-stats { grid-template-columns: 1fr; }
       .today-date { font-size: 22px; }
       .stat-val { font-size: 22px; }
       .cal-day { font-size: 11px; }
+      .chart-wrap { height: 180px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ─── Navigation ─── -->
 <nav class="nav">
   <div class="nav-inner">
-    <button class="nav-tab active" data-section="today"    onclick="nav(this,'today')">Today</button>
-    <button class="nav-tab"        data-section="calendar" onclick="nav(this,'calendar')">Calendar</button>
-    <button class="nav-tab"        data-section="stats"    onclick="nav(this,'stats')">Stats</button>
-    <button class="nav-tab"        data-section="data"     onclick="nav(this,'data')">Data</button>
+    <button class="nav-tab active"  onclick="nav(this,'today')">Today</button>
+    <button class="nav-tab"         onclick="nav(this,'calendar')">Calendar</button>
+    <button class="nav-tab"         onclick="nav(this,'stats')">Stats</button>
+    <button class="nav-tab"         onclick="nav(this,'progress')">Progress</button>
+    <button class="nav-tab"         onclick="nav(this,'data')">Data</button>
   </div>
 </nav>
 
@@ -368,12 +373,24 @@
       <div class="today-weekday" id="hDay"></div>
       <div class="progress-row">
         <div class="progress-bar"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
-        <div class="progress-label" id="progLabel">0 / 5</div>
+        <div class="progress-label" id="progLabel">0 / 6</div>
       </div>
     </div>
     <div class="card">
       <div class="card-title">Today's Habits</div>
       <div class="habit-list" id="habitList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Weight ⚖️ <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--muted)">— optional, doesn't affect completion</span></div>
+      <div class="weight-row">
+        <div class="weight-input-wrap">
+          <input type="number" class="weight-input" id="weightInput"
+                 placeholder="78.5" step="0.1" min="0" max="500"
+                 oninput="onWeightInput()" onblur="onWeightBlur()">
+          <span class="weight-kg-label">kg</span>
+        </div>
+      </div>
+      <div id="weightStats"></div>
     </div>
   </div>
 
@@ -393,15 +410,9 @@
       </div>
       <div class="cal-grid" id="calGrid"></div>
       <div class="cal-legend">
-        <div class="leg">
-          <div class="leg-dot" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.35)"></div>All done
-        </div>
-        <div class="leg">
-          <div class="leg-dot" style="background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.3)"></div>Partial
-        </div>
-        <div class="leg">
-          <div class="leg-dot" style="background:var(--surface2)"></div>Nothing
-        </div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(16,185,129,.2);border:1px solid rgba(16,185,129,.35)"></div>All done</div>
+        <div class="leg"><div class="leg-dot" style="background:rgba(245,158,11,.18);border:1px solid rgba(245,158,11,.3)"></div>Partial</div>
+        <div class="leg"><div class="leg-dot" style="background:var(--surface2)"></div>Nothing</div>
       </div>
     </div>
     <p class="cal-hint">Tap any past day to view or edit</p>
@@ -422,40 +433,81 @@
       <div class="stats-grid" id="readGrid"></div>
     </div>
     <div class="card">
+      <div class="card-title">Running 🏃</div>
+      <div class="stats-grid" id="runGrid"></div>
+    </div>
+    <div class="card">
       <div class="card-title">This Month — Completion</div>
       <div class="stats-grid" id="monthGrid"></div>
+    </div>
+  </div>
+
+  <!-- ─── PROGRESS ─── -->
+  <div id="s-progress" class="section">
+    <!-- Weight chart -->
+    <div class="card">
+      <div class="card-title">Weight Over Time ⚖️</div>
+      <div class="range-pills" id="weightRangePills">
+        <button class="range-pill" onclick="setWeightRange(7,this)">7d</button>
+        <button class="range-pill active" onclick="setWeightRange(30,this)">30d</button>
+        <button class="range-pill" onclick="setWeightRange(90,this)">90d</button>
+        <button class="range-pill" onclick="setWeightRange(0,this)">All</button>
+      </div>
+      <div class="chart-wrap"><canvas id="weightChart"></canvas></div>
+      <div class="progress-stats" id="weightProgressStats"></div>
+    </div>
+
+    <!-- Running chart -->
+    <div class="card">
+      <div class="card-title">Running — Last 30 Days 🏃</div>
+      <div class="chart-wrap"><canvas id="runChart"></canvas></div>
+      <div class="progress-stats" id="runProgressStats"></div>
+    </div>
+
+    <!-- Habit consistency -->
+    <div class="card">
+      <div class="card-title">Habit Consistency — Last 30 Days</div>
+      <div id="consistRows"></div>
     </div>
   </div>
 
   <!-- ─── DATA ─── -->
   <div id="s-data" class="section">
     <div class="card">
-      <div class="card-title">Manage Your Data</div>
+      <div class="card-title">Goals &amp; Settings</div>
+      <div class="setting-row">
+        <div class="setting-lbl">Goal Weight<small>kg — shown as target line on weight chart</small></div>
+        <input type="number" class="setting-input" id="sgGoalWeight" step="0.5" min="0" max="500" placeholder="—">
+      </div>
+      <div class="setting-row">
+        <div class="setting-lbl">Running Goal<small>km per session (counts as streak day)</small></div>
+        <input type="number" class="setting-input" id="sgRunGoal" step="0.5" min="0" placeholder="3">
+      </div>
+      <div class="setting-row">
+        <div class="setting-lbl">Water Goal<small>glasses per day</small></div>
+        <input type="number" class="setting-input" id="sgWaterGoal" step="1" min="1" placeholder="8">
+      </div>
+      <div class="setting-row">
+        <div class="setting-lbl">Reading Goal<small>minutes per day</small></div>
+        <input type="number" class="setting-input" id="sgReadGoal" step="1" min="1" placeholder="20">
+      </div>
+      <button class="save-settings-btn" onclick="saveSettings()">Save Settings</button>
+    </div>
 
+    <div class="card">
+      <div class="card-title">Manage Your Data</div>
       <button class="data-btn" onclick="exportJSON()">
         <span class="btn-icon">⬇️</span>
-        <div>
-          <div>Export Backup</div>
-          <div class="btn-sub">Download all data as a JSON file you can restore later</div>
-        </div>
+        <div><div>Export Backup</div><div class="btn-sub">Download all data as a JSON file you can restore later</div></div>
       </button>
-
       <button class="data-btn" onclick="document.getElementById('importFile').click()">
         <span class="btn-icon">⬆️</span>
-        <div>
-          <div>Import Backup</div>
-          <div class="btn-sub">Restore from a previously exported JSON file</div>
-        </div>
+        <div><div>Import Backup</div><div class="btn-sub">Restore from a previously exported JSON file</div></div>
       </button>
-
       <button class="data-btn" onclick="toggleViewer()">
         <span class="btn-icon">👁️</span>
-        <div>
-          <div>View All Data</div>
-          <div class="btn-sub">Browse every logged day in a readable format</div>
-        </div>
+        <div><div>View All Data</div><div class="btn-sub">Browse every logged day in a readable format</div></div>
       </button>
-
       <input type="file" id="importFile" accept=".json" onchange="importJSON(event)">
       <div class="data-viewer" id="dataViewer"></div>
     </div>
@@ -483,79 +535,128 @@ const HABITS = [
   { key:'gym',        name:'Gym',          icon:'🏋️', type:'bool' },
   { key:'meditation', name:'Meditation',   icon:'🧘', type:'bool' },
   { key:'noJunkFood', name:'No Junk Food', icon:'🥗', type:'bool' },
-  { key:'water',      name:'Water',        icon:'💧', type:'num', unit:'glasses', goal:8  },
-  { key:'reading',    name:'Reading',      icon:'📚', type:'num', unit:'min',     goal:20 },
+  { key:'water',      name:'Water',        icon:'💧', type:'num',  unit:'glasses', step:1   },
+  { key:'reading',    name:'Reading',      icon:'📚', type:'num',  unit:'min',     step:1   },
+  { key:'running',    name:'Running',      icon:'🏃', type:'run',  unit:'km',      step:0.5 },
 ];
-const STORE = 'habitTracker_v1';
+const BOOL_HABITS = HABITS.filter(h=>h.type==='bool');
+
+const STORE_DB   = 'habitTracker_v1';
+const STORE_CFG  = 'habitTracker_settings';
 const MONTHS = ['January','February','March','April','May','June',
                 'July','August','September','October','November','December'];
 
 // ═══════════════════════════════════════════════════════
-//  Storage helpers
+//  Settings
+// ═══════════════════════════════════════════════════════
+let cfg = { goalWeight:null, runGoal:3, waterGoal:8, readGoal:20 };
+
+function loadCfg() {
+  try {
+    const raw = localStorage.getItem(STORE_CFG);
+    if (raw) cfg = { ...cfg, ...JSON.parse(raw) };
+  } catch(_) {}
+}
+function saveCfg() { localStorage.setItem(STORE_CFG, JSON.stringify(cfg)); }
+
+function saveSettings() {
+  const gw = parseFloat(document.getElementById('sgGoalWeight').value);
+  const rg = parseFloat(document.getElementById('sgRunGoal').value);
+  const wg = parseFloat(document.getElementById('sgWaterGoal').value);
+  const rg2= parseFloat(document.getElementById('sgReadGoal').value);
+  cfg.goalWeight = isNaN(gw) ? null : gw;
+  cfg.runGoal    = isNaN(rg) ? 3    : rg;
+  cfg.waterGoal  = isNaN(wg) ? 8    : wg;
+  cfg.readGoal   = isNaN(rg2)? 20   : rg2;
+  saveCfg();
+  renderToday();
+  // Rebuild progress charts if visible
+  if (document.getElementById('s-progress').classList.contains('active')) renderProgress();
+}
+
+function populateSettingsUI() {
+  document.getElementById('sgGoalWeight').value = cfg.goalWeight ?? '';
+  document.getElementById('sgRunGoal').value    = cfg.runGoal;
+  document.getElementById('sgWaterGoal').value  = cfg.waterGoal;
+  document.getElementById('sgReadGoal').value   = cfg.readGoal;
+}
+
+// ═══════════════════════════════════════════════════════
+//  DB helpers
 // ═══════════════════════════════════════════════════════
 let db = {};
 
-function load()  { try { db = JSON.parse(localStorage.getItem(STORE)||'{}'); } catch(e){ db={}; } }
-function save()  { localStorage.setItem(STORE, JSON.stringify(db)); }
+function load() {
+  try { db = JSON.parse(localStorage.getItem(STORE_DB)||'{}'); } catch(_){ db={}; }
+  // Migrate: ensure running field exists on old entries
+  for (const ds of Object.keys(db)) {
+    if (db[ds].running === undefined) db[ds].running = 0;
+  }
+}
+function save() { localStorage.setItem(STORE_DB, JSON.stringify(db)); }
 
-function today() {
-  const d = new Date();
-  return fmt(d);
-}
-function fmt(d) {
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
-}
-function p(n) { return String(n).padStart(2,'0'); }
+function today() { return fmt(new Date()); }
+function fmt(d) { return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`; }
+function p(n)   { return String(n).padStart(2,'0'); }
 
 function dayData(ds) {
-  if (!db[ds]) db[ds] = { gym:false, meditation:false, noJunkFood:false, water:0, reading:0 };
-  return db[ds];
+  if (!db[ds]) db[ds] = {};
+  const d = db[ds];
+  if (d.gym        === undefined) d.gym        = false;
+  if (d.meditation === undefined) d.meditation = false;
+  if (d.noJunkFood === undefined) d.noJunkFood = false;
+  if (d.water      === undefined) d.water      = 0;
+  if (d.reading    === undefined) d.reading    = 0;
+  if (d.running    === undefined) d.running    = 0;
+  // weight is optional — no default
+  return d;
+}
+
+function getGoal(h) {
+  if (h.key==='running') return cfg.runGoal;
+  if (h.key==='water')   return cfg.waterGoal;
+  if (h.key==='reading') return cfg.readGoal;
+  return 1;
 }
 
 // ═══════════════════════════════════════════════════════
-//  Streak logic
+//  Streak logic (weight excluded)
 // ═══════════════════════════════════════════════════════
 function isDone(ds, h) {
   const d = db[ds];
   if (!d) return false;
-  return h.type==='bool' ? !!d[h.key] : (d[h.key]||0) >= h.goal;
+  if (h.type==='bool') return !!d[h.key];
+  return (d[h.key]||0) >= getGoal(h);
 }
 
 function streak(h) {
-  const t = today();
-  let d = new Date();
-  // Don't penalise an incomplete today — start count from yesterday if today not done
-  if (!isDone(t, h)) d.setDate(d.getDate()-1);
-  let count = 0;
-  while (true) {
-    const ds = fmt(d);
+  const t = today(); let d = new Date();
+  if (!isDone(t,h)) d.setDate(d.getDate()-1);
+  let count=0;
+  while(true) {
+    const ds=fmt(d);
     if (!isDone(ds,h)) break;
-    count++;
-    d.setDate(d.getDate()-1);
-    if (count > 3650) break;
+    count++; d.setDate(d.getDate()-1);
+    if (count>3650) break;
   }
   return count;
 }
 
 function bestStreak(h) {
-  const keys = Object.keys(db).sort();
-  let best=0, cur=0, prev=null;
+  const keys=Object.keys(db).sort();
+  let best=0,cur=0,prev=null;
   for (const ds of keys) {
     if (prev) {
-      const pd = new Date(prev+'T00:00:00');
-      const cd = new Date(ds+'T00:00:00');
-      if ((cd-pd)/86400000 !== 1) cur=0;
+      const diff=(new Date(ds+'T00:00:00')-new Date(prev+'T00:00:00'))/86400000;
+      if (diff!==1) cur=0;
     }
-    if (isDone(ds,h)) { cur++; best=Math.max(best,cur); }
-    else cur=0;
+    if (isDone(ds,h)) { cur++; best=Math.max(best,cur); } else cur=0;
     prev=ds;
   }
   return best;
 }
 
-// ═══════════════════════════════════════════════════════
-//  Day completion ratio (0-1, or -1 if no data)
-// ═══════════════════════════════════════════════════════
+// ─ day completion: only habits count (not weight) ─
 function dayRatio(ds) {
   if (!db[ds]) return -1;
   return HABITS.filter(h=>isDone(ds,h)).length / HABITS.length;
@@ -565,30 +666,27 @@ function dayRatio(ds) {
 //  Render: TODAY
 // ═══════════════════════════════════════════════════════
 function renderToday() {
-  const t   = today();
-  const now = new Date();
-
+  const t=today(), now=new Date();
   document.getElementById('hDate').textContent =
     now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   document.getElementById('hDay').textContent =
     now.toLocaleDateString('en-US',{weekday:'long'});
 
   const done = HABITS.filter(h=>isDone(t,h)).length;
-  const pct  = (done/HABITS.length)*100;
+  const pct  = done/HABITS.length*100;
   document.getElementById('progFill').style.width = pct+'%';
   document.getElementById('progLabel').textContent = `${done} / ${HABITS.length}`;
 
-  const dd = dayData(t);
+  const dd   = dayData(t);
   const list = document.getElementById('habitList');
   list.innerHTML = '';
 
   for (const h of HABITS) {
-    const completed = isDone(t, h);
+    const completed = isDone(t,h);
     const s         = streak(h);
     const item      = document.createElement('div');
-    item.className  = 'habit-item' + (completed ? ' done' : '');
-
-    const streakHtml = s > 0
+    item.className  = 'habit-item'+(completed?' done':'');
+    const streakHtml = s>0
       ? `<span class="${s>=3?'hot':''}">🔥 ${s} day streak</span>`
       : '<span>No streak yet</span>';
 
@@ -602,9 +700,28 @@ function renderToday() {
         <div class="checkbox ${completed?'checked':''}" onclick="toggleBool('${h.key}')">
           <span class="tick">✓</span>
         </div>`;
+
+    } else if (h.type==='run') {
+      const val  = +(dd[h.key]||0);
+      const goal = val >= getGoal(h);
+      item.innerHTML = `
+        <div class="habit-icon">${h.icon}</div>
+        <div class="habit-info">
+          <div class="habit-name">${h.name} <span style="font-size:12px;color:var(--muted);font-weight:400">goal: ${getGoal(h)}km</span></div>
+          <div class="habit-streak">${streakHtml}</div>
+        </div>
+        <div class="num-ctrl">
+          <button class="num-btn" onclick="adjustRun(-0.5)">−</button>
+          <input type="number" class="num-input ${goal?'goal':''}" id="nv-running"
+                 value="${val}" min="0" step="0.1"
+                 onchange="setRunVal(this.value)" oninput="setRunVal(this.value)">
+          <button class="num-btn" onclick="adjustRun(0.5)">+</button>
+          <div class="num-unit">km</div>
+        </div>`;
+
     } else {
       const val  = dd[h.key]||0;
-      const goal = val>=h.goal;
+      const goal = val >= getGoal(h);
       item.innerHTML = `
         <div class="habit-icon">${h.icon}</div>
         <div class="habit-info">
@@ -620,18 +737,101 @@ function renderToday() {
     }
     list.appendChild(item);
   }
+
+  // Weight input & stats
+  const storedW = db[t]?.weight;
+  const inp = document.getElementById('weightInput');
+  if (storedW != null && document.activeElement !== inp) inp.value = storedW;
+  else if (storedW == null && document.activeElement !== inp) inp.value = '';
+  renderWeightStats();
 }
 
 function toggleBool(key) {
-  const dd = dayData(today());
-  dd[key] = !dd[key];
+  const dd=dayData(today()); dd[key]=!dd[key]; save(); renderToday();
+}
+function adjustNum(key, delta) {
+  const dd=dayData(today());
+  dd[key]=Math.max(0,(dd[key]||0)+delta); save(); renderToday();
+}
+function adjustRun(delta) {
+  const dd=dayData(today());
+  dd.running=Math.max(0,Math.round(((dd.running||0)+delta)*10)/10);
   save(); renderToday();
 }
+function setRunVal(val) {
+  const v=parseFloat(val);
+  if (isNaN(v)||v<0) return;
+  const dd=dayData(today());
+  dd.running=Math.round(v*10)/10;
+  save();
+  // update goal class without full re-render
+  const el=document.getElementById('nv-running');
+  if (el) el.className='num-input'+(dd.running>=getGoal(HABITS.find(h=>h.key==='running'))?' goal':'');
+  // update progress bar
+  const done=HABITS.filter(h=>isDone(today(),h)).length;
+  document.getElementById('progFill').style.width=(done/HABITS.length*100)+'%';
+  document.getElementById('progLabel').textContent=`${done} / ${HABITS.length}`;
+}
 
-function adjustNum(key, delta) {
-  const dd = dayData(today());
-  dd[key] = Math.max(0, (dd[key]||0)+delta);
-  save(); renderToday();
+// ─ Weight ─
+let weightTimer=null;
+function onWeightInput() {
+  clearTimeout(weightTimer);
+  weightTimer=setTimeout(()=>commitWeight(), 800);
+}
+function onWeightBlur() { commitWeight(); }
+function commitWeight() {
+  const v=parseFloat(document.getElementById('weightInput').value);
+  const dd=dayData(today());
+  if (isNaN(v)||v<=0) {
+    delete dd.weight;
+  } else {
+    dd.weight=Math.round(v*10)/10;
+  }
+  save(); renderWeightStats();
+}
+
+function renderWeightStats() {
+  const t    = today();
+  const todayW = db[t]?.weight ?? null;
+  const el   = document.getElementById('weightStats');
+
+  if (todayW==null) {
+    el.innerHTML = '<div class="weight-empty">Log today\'s weight above to see changes</div>';
+    return;
+  }
+
+  function wChange(ds) {
+    const w=db[ds]?.weight ?? null;
+    if (w==null) return null;
+    const diff=+(todayW-w).toFixed(1);
+    const pct =+(diff/w*100).toFixed(1);
+    return { diff, pct };
+  }
+  function daysBefore(n) { const d=new Date(); d.setDate(d.getDate()-n); return fmt(d); }
+
+  const yest = wChange(daysBefore(1));
+  const w7   = wChange(daysBefore(7));
+  const firstDs = Object.keys(db).filter(ds=>db[ds]?.weight!=null).sort()[0];
+  const wStart  = firstDs && firstDs!==t ? wChange(firstDs) : null;
+
+  function row(lbl, change, extraLabel='') {
+    if (!change) return `<div class="weight-stat-row"><span class="weight-stat-lbl">${lbl}</span><span class="weight-stat-val" style="color:var(--muted)">—</span></div>`;
+    const dir   = change.diff<0?'down':change.diff>0?'up':'';
+    const sign  = change.diff>0?'+':'';
+    const label = extraLabel ? ` <small style="color:var(--muted);font-weight:400">${change.pct>0?'+':''}${change.pct}%</small>` : '';
+    return `<div class="weight-stat-row">
+      <span class="weight-stat-lbl">${lbl}</span>
+      <span class="weight-stat-val ${dir}">${sign}${change.diff} kg${label}</span>
+    </div>`;
+  }
+
+  el.innerHTML = `
+    <div class="weight-stats">
+      ${row('vs yesterday', yest)}
+      ${row('vs 7 days ago', w7, true)}
+      ${row('vs start ('+(firstDs||'').slice(5)+')', wStart, true)}
+    </div>`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -640,35 +840,26 @@ function adjustNum(key, delta) {
 let calY, calM;
 
 function renderCalendar() {
-  const t = new Date(); const ts = today();
-  if (calY===undefined) { calY=t.getFullYear(); calM=t.getMonth(); }
-
-  document.getElementById('calTitle').textContent = `${MONTHS[calM]} ${calY}`;
-
-  const firstWD    = new Date(calY,calM,1).getDay();
-  const daysInMon  = new Date(calY,calM+1,0).getDate();
-  const grid       = document.getElementById('calGrid');
-  grid.innerHTML   = '';
-
+  const ts=today(), now=new Date();
+  if (calY===undefined) { calY=now.getFullYear(); calM=now.getMonth(); }
+  document.getElementById('calTitle').textContent=`${MONTHS[calM]} ${calY}`;
+  const firstWD=new Date(calY,calM,1).getDay();
+  const dim=new Date(calY,calM+1,0).getDate();
+  const grid=document.getElementById('calGrid');
+  grid.innerHTML='';
   for (let i=0;i<firstWD;i++) {
     const e=document.createElement('div'); e.className='cal-day empty'; grid.appendChild(e);
   }
-
-  for (let d=1;d<=daysInMon;d++) {
-    const ds  = `${calY}-${p(calM+1)}-${p(d)}`;
-    const el  = document.createElement('div');
-    el.textContent = d;
-
-    if (ds > ts) {
-      el.className = 'cal-day future';
+  for (let d=1;d<=dim;d++) {
+    const ds=`${calY}-${p(calM+1)}-${p(d)}`;
+    const el=document.createElement('div'); el.textContent=d;
+    if (ds>ts) {
+      el.className='cal-day future';
     } else {
-      const r = dayRatio(ds);
-      if      (r >= 1)          el.className = 'cal-day complete';
-      else if (r > 0)           el.className = 'cal-day partial';
-      else                      el.className = 'cal-day gray';
-      el.addEventListener('click', ()=>openEdit(ds));
+      const r=dayRatio(ds);
+      el.className = r>=1?'cal-day complete' : r>0?'cal-day partial' : 'cal-day gray';
+      el.addEventListener('click',()=>openEdit(ds));
     }
-
     if (ds===ts) el.classList.add('today-ring');
     grid.appendChild(el);
   }
@@ -676,8 +867,7 @@ function renderCalendar() {
 
 function shiftMonth(dir) {
   calM+=dir;
-  if (calM<0)  { calM=11; calY--; }
-  if (calM>11) { calM=0;  calY++; }
+  if (calM<0)  {calM=11;calY--;} if (calM>11) {calM=0;calY++;}
   renderCalendar();
 }
 
@@ -685,15 +875,12 @@ function shiftMonth(dir) {
 //  Render: STATS
 // ═══════════════════════════════════════════════════════
 function renderStats() {
-  // Streaks
-  const rows = document.getElementById('streakRows');
-  rows.innerHTML = '';
+  const rows=document.getElementById('streakRows');
+  rows.innerHTML='';
   for (const h of HABITS) {
-    const cur  = streak(h);
-    const best = bestStreak(h);
-    const row  = document.createElement('div');
-    row.className = 'streak-row';
-    row.innerHTML = `
+    const cur=streak(h), best=bestStreak(h);
+    const row=document.createElement('div'); row.className='streak-row';
+    row.innerHTML=`
       <div class="streak-name">${h.icon} ${h.name}</div>
       <div class="streak-nums">
         <div class="streak-cur">${cur} <small>day${cur!==1?'s':''}</small></div>
@@ -702,33 +889,39 @@ function renderStats() {
     rows.appendChild(row);
   }
 
-  // Date ranges
-  const weekDates  = pastDays(7);
-  const monthDates = thisMonthDays();
+  const wd=pastDays(7), md=thisMonthDays();
+  function sum(dates,key) { return dates.reduce((s,ds)=>s+((db[ds]&&db[ds][key])||0),0); }
 
-  function sumKey(dates,key) { return dates.reduce((s,ds)=>s+((db[ds]&&db[ds][key])||0),0); }
-
-  // Water
-  document.getElementById('waterGrid').innerHTML = statGrid([
-    ['This Week',  sumKey(weekDates,'water'),  'glasses'],
-    ['This Month', sumKey(monthDates,'water'), 'glasses'],
+  document.getElementById('waterGrid').innerHTML=statGrid([
+    ['This Week',  sum(wd,'water'),  'glasses'],
+    ['This Month', sum(md,'water'),  'glasses'],
+  ]);
+  document.getElementById('readGrid').innerHTML=statGrid([
+    ['This Week',  sum(wd,'reading'),'min'],
+    ['This Month', sum(md,'reading'),'min'],
   ]);
 
-  // Reading
-  document.getElementById('readGrid').innerHTML = statGrid([
-    ['This Week',  sumKey(weekDates,'reading'),  'min'],
-    ['This Month', sumKey(monthDates,'reading'), 'min'],
+  // Running stats
+  const runWk=sum(wd,'running'), runMo=sum(md,'running');
+  const allRunDays=Object.keys(db).filter(ds=>db[ds]?.running>0);
+  const longestRun=allRunDays.reduce((mx,ds)=>Math.max(mx,db[ds].running),0);
+  const sessions=allRunDays.length;
+  const avgRun=sessions>0?Math.round(allRunDays.reduce((s,ds)=>s+db[ds].running,0)/sessions*10)/10:0;
+  document.getElementById('runGrid').innerHTML=statGrid([
+    ['This Week',    +runWk.toFixed(1),  'km'],
+    ['This Month',   +runMo.toFixed(1),  'km'],
+    ['Longest Run',  +longestRun.toFixed(1),'km'],
+    ['Avg Session',  +avgRun.toFixed(1), 'km'],
   ]);
 
-  // Month completion
-  const allDone   = monthDates.filter(ds=>dayRatio(ds)>=1).length;
-  const partial   = monthDates.filter(ds=>{ const r=dayRatio(ds); return r>0&&r<1; }).length;
-  const pct       = monthDates.length ? Math.round(allDone/monthDates.length*100) : 0;
-  document.getElementById('monthGrid').innerHTML = statGrid([
-    ['All 5 Done',  allDone,             'days'],
-    ['Completion',  pct,                 '%'   ],
-    ['Partial',     partial,             'days'],
-    ['Days Logged', monthDates.length,   'total'],
+  const allDone=md.filter(ds=>dayRatio(ds)>=1).length;
+  const partial=md.filter(ds=>{const r=dayRatio(ds);return r>0&&r<1;}).length;
+  const pct=md.length?Math.round(allDone/md.length*100):0;
+  document.getElementById('monthGrid').innerHTML=statGrid([
+    ['All Done',    allDone,       'days'],
+    ['Completion',  pct,           '%'   ],
+    ['Partial',     partial,       'days'],
+    ['Days Logged', md.length,     'total'],
   ]);
 }
 
@@ -739,21 +932,260 @@ function statGrid(items) {
       <div class="stat-val">${val}<small>${unit}</small></div>
     </div>`).join('');
 }
-
 function pastDays(n) {
-  const d=new Date(), out=[];
-  for (let i=n-1;i>=0;i--) {
-    const x=new Date(d); x.setDate(d.getDate()-i); out.push(fmt(x));
-  }
+  const d=new Date(),out=[];
+  for(let i=n-1;i>=0;i--){const x=new Date(d);x.setDate(d.getDate()-i);out.push(fmt(x));}
+  return out;
+}
+function thisMonthDays() {
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth(),day=now.getDate(),out=[];
+  for(let i=1;i<=day;i++) out.push(`${y}-${p(m+1)}-${p(i)}`);
   return out;
 }
 
-function thisMonthDays() {
-  const now=new Date();
-  const y=now.getFullYear(), m=now.getMonth(), day=now.getDate();
-  const out=[];
-  for (let i=1;i<=day;i++) out.push(`${y}-${p(m+1)}-${p(i)}`);
-  return out;
+// ═══════════════════════════════════════════════════════
+//  Render: PROGRESS (charts)
+// ═══════════════════════════════════════════════════════
+let weightChartInst=null, runChartInst=null;
+let currentWeightRange=30;
+
+function renderProgress() {
+  if (typeof Chart==='undefined') {
+    document.querySelectorAll('.chart-wrap').forEach(el=>{
+      el.outerHTML='<div class="chart-offline">📡 Charts require an internet connection to load the charting library. All other features work offline.</div>';
+    });
+    return;
+  }
+  renderWeightChart(currentWeightRange);
+  renderRunChart();
+  renderConsistency();
+}
+
+function setWeightRange(days, btn) {
+  document.querySelectorAll('#weightRangePills .range-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentWeightRange=days;
+  renderWeightChart(days);
+}
+
+Chart.defaults.color='#888899';
+Chart.defaults.borderColor='#2a2a38';
+
+function weightDataSeries(rangeDays) {
+  const allDates=Object.keys(db).filter(ds=>db[ds]?.weight!=null).sort();
+  if (!allDates.length) return { labels:[], actual:[], ma:[] };
+
+  const t=today();
+  let dates=[];
+  if (rangeDays===0) {
+    // All time: from first ever weight to today
+    const first=allDates[0];
+    let d=new Date(first+'T00:00:00');
+    const end=new Date(t+'T00:00:00');
+    while(d<=end) { dates.push(fmt(d)); d.setDate(d.getDate()+1); }
+  } else {
+    dates=pastDays(rangeDays);
+  }
+
+  const actual=dates.map(ds=>db[ds]?.weight??null);
+
+  // 7-day moving average using only available data points within the window
+  const ma=dates.map((ds,i)=>{
+    const windowStart=Math.max(0,i-6);
+    const slice=actual.slice(windowStart,i+1).filter(v=>v!=null);
+    return slice.length ? Math.round(slice.reduce((s,v)=>s+v,0)/slice.length*10)/10 : null;
+  });
+
+  // Format labels: short month/day
+  const labels=dates.map(ds=>{
+    const d=new Date(ds+'T00:00:00');
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  });
+
+  return {labels,actual,ma};
+}
+
+function renderWeightChart(rangeDays) {
+  const {labels,actual,ma}=weightDataSeries(rangeDays);
+  const ctx=document.getElementById('weightChart');
+  if (weightChartInst) weightChartInst.destroy();
+
+  const datasets=[
+    {
+      label:'Weight',
+      data:actual,
+      borderColor:'rgba(99,102,241,0.7)',
+      backgroundColor:'rgba(99,102,241,0.08)',
+      borderWidth:1.5,
+      pointRadius:3,
+      pointHoverRadius:5,
+      pointBackgroundColor:'rgba(99,102,241,0.9)',
+      spanGaps:true,
+      tension:0.3,
+    },
+    {
+      label:'7-day avg',
+      data:ma,
+      borderColor:'#10b981',
+      backgroundColor:'transparent',
+      borderWidth:2.5,
+      pointRadius:0,
+      pointHoverRadius:4,
+      spanGaps:true,
+      tension:0.4,
+    },
+  ];
+
+  // Goal line
+  if (cfg.goalWeight) {
+    datasets.push({
+      label:'Goal',
+      data:labels.map(()=>cfg.goalWeight),
+      borderColor:'rgba(245,158,11,0.45)',
+      borderWidth:1,
+      borderDash:[5,5],
+      pointRadius:0,
+      spanGaps:true,
+    });
+  }
+
+  weightChartInst=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets},
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{
+          labels:{color:'#888899',boxWidth:12,font:{size:12}},
+        },
+        tooltip:{
+          backgroundColor:'#1e1e28',
+          borderColor:'#2a2a38',
+          borderWidth:1,
+          titleColor:'#e8e8f0',
+          bodyColor:'#888899',
+          callbacks:{
+            label:(c)=>c.raw!=null?` ${c.dataset.label}: ${c.raw} kg`:null,
+          },
+        },
+      },
+      scales:{
+        x:{grid:{color:'#2a2a38'},ticks:{maxTicksLimit:8,font:{size:11}}},
+        y:{
+          grid:{color:'#2a2a38'},
+          ticks:{font:{size:11},callback:v=>`${v}kg`},
+        },
+      },
+    },
+  });
+
+  // Weight summary stats
+  const allW=Object.keys(db).filter(ds=>db[ds]?.weight!=null).sort();
+  const firstW=allW[0]?db[allW[0]].weight:null;
+  const lastW =allW[allW.length-1]?db[allW[allW.length-1]].weight:null;
+  const totalDiff=firstW&&lastW?+(lastW-firstW).toFixed(1):null;
+  const totalPct =firstW&&lastW?+(totalDiff/firstW*100).toFixed(1):null;
+  const toGoal   =cfg.goalWeight&&lastW?+(lastW-cfg.goalWeight).toFixed(1):null;
+
+  document.getElementById('weightProgressStats').innerHTML=statGrid([
+    ['Start',    firstW!=null?firstW+'kg':'—',''],
+    ['Current',  lastW!=null?lastW+'kg':'—',''],
+    ['Total Change', totalDiff!=null?(totalDiff>0?'+':'')+totalDiff+' kg ('+totalPct+'%)':'—',''],
+    ['To Goal',  toGoal!=null?(toGoal>0?'+':'')+toGoal+' kg':'—',''],
+  ]);
+}
+
+function renderRunChart() {
+  const dates=pastDays(30);
+  const vals =dates.map(ds=>db[ds]?.running||0);
+  const labels=dates.map(ds=>{
+    const d=new Date(ds+'T00:00:00');
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  });
+  const ctx=document.getElementById('runChart');
+  if (runChartInst) runChartInst.destroy();
+
+  const colors=vals.map(v=>v>=cfg.runGoal?'rgba(16,185,129,0.7)':'rgba(99,102,241,0.5)');
+
+  runChartInst=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {
+          label:'km',
+          data:vals,
+          backgroundColor:colors,
+          borderRadius:3,
+        },
+        {
+          label:'Goal',
+          data:labels.map(()=>cfg.runGoal),
+          type:'line',
+          borderColor:'rgba(245,158,11,0.5)',
+          borderWidth:1,
+          borderDash:[4,4],
+          pointRadius:0,
+          fill:false,
+        },
+      ],
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{color:'#888899',boxWidth:12,font:{size:12}}},
+        tooltip:{
+          backgroundColor:'#1e1e28',borderColor:'#2a2a38',borderWidth:1,
+          titleColor:'#e8e8f0',bodyColor:'#888899',
+        },
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{maxTicksLimit:10,font:{size:11}}},
+        y:{
+          grid:{color:'#2a2a38'},
+          ticks:{font:{size:11},callback:v=>`${v}km`},
+          beginAtZero:true,
+        },
+      },
+    },
+  });
+
+  const wd=pastDays(7), md=thisMonthDays();
+  const sumRun=dates=>dates.reduce((s,ds)=>s+(db[ds]?.running||0),0);
+  const allR=Object.keys(db).filter(ds=>db[ds]?.running>0);
+  const longest=allR.reduce((mx,ds)=>Math.max(mx,db[ds].running),0);
+  const sessions=allR.length;
+  const avg=sessions?Math.round(allR.reduce((s,ds)=>s+db[ds].running,0)/sessions*10)/10:0;
+
+  document.getElementById('runProgressStats').innerHTML=statGrid([
+    ['This Week',   +sumRun(wd).toFixed(1), 'km'],
+    ['This Month',  +sumRun(md).toFixed(1), 'km'],
+    ['Longest Run', +longest.toFixed(1),    'km'],
+    ['Avg Session', +avg.toFixed(1),        'km'],
+  ]);
+}
+
+function renderConsistency() {
+  const dates=pastDays(30);
+  const el=document.getElementById('consistRows');
+  el.innerHTML='';
+  for (const h of BOOL_HABITS) {
+    const done=dates.filter(ds=>isDone(ds,h)).length;
+    const pct =Math.round(done/dates.length*100);
+    const best=bestStreak(h);
+    const row=document.createElement('div'); row.className='consist-row';
+    row.innerHTML=`
+      <div class="consist-header">
+        <div class="consist-name">${h.icon} ${h.name}</div>
+        <div class="consist-pct">${pct}%</div>
+      </div>
+      <div class="consist-bar">
+        <div class="consist-fill" style="width:${pct}%"></div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">${done}/30 days · Best streak: ${best}d</div>`;
+    el.appendChild(row);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -762,72 +1194,100 @@ function thisMonthDays() {
 let editDs=null, editTmp={};
 
 function openEdit(ds) {
-  editDs  = ds;
-  editTmp = Object.assign({ gym:false,meditation:false,noJunkFood:false,water:0,reading:0 }, db[ds]||{});
-
-  const d = new Date(ds+'T00:00:00');
-  document.getElementById('modalTitle').textContent =
+  editDs=ds;
+  editTmp=Object.assign({gym:false,meditation:false,noJunkFood:false,water:0,reading:0,running:0}, db[ds]||{});
+  const d=new Date(ds+'T00:00:00');
+  document.getElementById('modalTitle').textContent=
     d.toLocaleDateString('en-US',{weekday:'short',month:'long',day:'numeric',year:'numeric'});
 
-  const body = document.getElementById('modalBody');
-  body.innerHTML = '';
+  const body=document.getElementById('modalBody');
+  body.innerHTML='';
 
   for (const h of HABITS) {
-    const row = document.createElement('div');
-    row.className = 'modal-row';
+    const row=document.createElement('div'); row.className='modal-row';
 
     if (h.type==='bool') {
-      row.innerHTML = `
+      row.innerHTML=`
         <div class="modal-lbl">${h.icon} ${h.name}</div>
         <div class="checkbox ${editTmp[h.key]?'checked':''}" id="mcb-${h.key}"
              onclick="mToggle('${h.key}')"><span class="tick">✓</span></div>`;
+
+    } else if (h.type==='run') {
+      const val=editTmp[h.key]||0;
+      row.innerHTML=`
+        <div class="modal-lbl">${h.icon} ${h.name}</div>
+        <div class="num-ctrl">
+          <button class="num-btn" onclick="mAdjRun(-0.5)">−</button>
+          <input type="number" class="num-input ${val>=getGoal(h)?'goal':''}" id="mnv-running"
+                 value="${val}" min="0" step="0.1" onchange="mSetRun(this.value)" oninput="mSetRun(this.value)">
+          <button class="num-btn" onclick="mAdjRun(0.5)">+</button>
+          <div class="num-unit">km</div>
+        </div>`;
+
     } else {
       const val=editTmp[h.key]||0;
-      row.innerHTML = `
+      row.innerHTML=`
         <div class="modal-lbl">${h.icon} ${h.name}</div>
         <div class="num-ctrl">
           <button class="num-btn" onclick="mAdj('${h.key}',-1)">−</button>
-          <div class="num-val ${val>=h.goal?'goal':''}" id="mnv-${h.key}">${val}</div>
+          <div class="num-val ${val>=getGoal(h)?'goal':''}" id="mnv-${h.key}">${val}</div>
           <button class="num-btn" onclick="mAdj('${h.key}',1)">+</button>
           <div class="num-unit">${h.unit}</div>
         </div>`;
     }
     body.appendChild(row);
   }
+
+  // Weight row
+  const wrow=document.createElement('div'); wrow.className='modal-row';
+  const wval=editTmp.weight!=null?editTmp.weight:'';
+  wrow.innerHTML=`
+    <div class="modal-lbl">⚖️ Weight</div>
+    <div style="display:flex;align-items:center;gap:6px">
+      <input type="number" class="modal-weight-input" id="mnv-weight"
+             value="${wval}" placeholder="—" step="0.1" min="0" max="500">
+      <span style="font-size:13px;color:var(--muted)">kg</span>
+    </div>`;
+  body.appendChild(wrow);
+
   document.getElementById('editOverlay').classList.add('open');
 }
 
 function mToggle(key) {
-  editTmp[key] = !editTmp[key];
-  const el = document.getElementById('mcb-'+key);
-  el.classList.toggle('checked', !!editTmp[key]);
+  editTmp[key]=!editTmp[key];
+  document.getElementById('mcb-'+key).classList.toggle('checked',!!editTmp[key]);
 }
-
-function mAdj(key, delta) {
-  const h = HABITS.find(x=>x.key===key);
-  editTmp[key] = Math.max(0,(editTmp[key]||0)+delta);
-  const el = document.getElementById('mnv-'+key);
-  el.textContent = editTmp[key];
-  el.className   = 'num-val'+(editTmp[key]>=h.goal?' goal':'');
+function mAdj(key,delta) {
+  const h=HABITS.find(x=>x.key===key);
+  editTmp[key]=Math.max(0,(editTmp[key]||0)+delta);
+  const el=document.getElementById('mnv-'+key);
+  el.textContent=editTmp[key];
+  el.className='num-val'+(editTmp[key]>=getGoal(h)?' goal':'');
+}
+function mAdjRun(delta) {
+  editTmp.running=Math.max(0,Math.round(((editTmp.running||0)+delta)*10)/10);
+  const el=document.getElementById('mnv-running');
+  if(el){el.value=editTmp.running; el.className='num-input'+(editTmp.running>=getGoal(HABITS.find(h=>h.key==='running'))?' goal':'');}
+}
+function mSetRun(val) {
+  const v=parseFloat(val); if(isNaN(v)||v<0)return;
+  editTmp.running=Math.round(v*10)/10;
 }
 
 function commitEdit() {
   if (!editDs) return;
-  db[editDs] = { ...editTmp };
-  save();
-  closeModal();
+  const wval=parseFloat(document.getElementById('mnv-weight').value);
+  if (!isNaN(wval)&&wval>0) editTmp.weight=Math.round(wval*10)/10;
+  else delete editTmp.weight;
+  db[editDs]={...editTmp};
+  save(); closeModal();
   renderCalendar();
   if (editDs===today()) renderToday();
   renderStats();
 }
 
-function closeModal() {
-  document.getElementById('editOverlay').classList.remove('open');
-  editDs=null;
-}
-function overlayClick(e) {
-  if (e.target===document.getElementById('editOverlay')) closeModal();
-}
+function closeModal() { document.getElementById('editOverlay').classList.remove('open'); editDs=null; }
+function overlayClick(e) { if(e.target===document.getElementById('editOverlay'))closeModal(); }
 
 // ═══════════════════════════════════════════════════════
 //  Navigation
@@ -839,65 +1299,71 @@ function nav(btn, name) {
   btn.classList.add('active');
   if (name==='calendar') renderCalendar();
   if (name==='stats')    renderStats();
+  if (name==='progress') renderProgress();
 }
 
 // ═══════════════════════════════════════════════════════
 //  Data management
 // ═══════════════════════════════════════════════════════
 function exportJSON() {
-  const blob = new Blob([JSON.stringify(db,null,2)],{type:'application/json'});
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `habit-tracker-${today()}.json`;
-  a.click();
+  const payload={ habits:db, settings:cfg };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download=`habit-tracker-${today()}.json`; a.click();
   URL.revokeObjectURL(url);
 }
 
 function importJSON(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
+  const file=e.target.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
     try {
-      const imp = JSON.parse(ev.target.result);
-      if (typeof imp!=='object' || Array.isArray(imp)) throw new Error();
-      db = imp;
+      const imp=JSON.parse(ev.target.result);
+      // Support both old format (plain object) and new format ({habits, settings})
+      if (imp.habits && typeof imp.habits==='object') {
+        db=imp.habits;
+        if (imp.settings) { cfg={...cfg,...imp.settings}; saveCfg(); populateSettingsUI(); }
+      } else if (typeof imp==='object'&&!Array.isArray(imp)) {
+        // Old export: top-level was the habits dict
+        db=imp;
+      } else throw new Error();
+      // Run migration on imported data
+      for (const ds of Object.keys(db)) { if(db[ds].running===undefined)db[ds].running=0; }
       save(); renderToday();
       calY=undefined; renderCalendar();
       renderStats();
-      alert(`Imported successfully — ${Object.keys(db).length} day(s) loaded.`);
+      alert(`Imported — ${Object.keys(db).length} day(s) loaded.`);
     } catch(_) {
-      alert('Could not import: invalid format. Make sure you are using a file exported from this app.');
+      alert('Could not import: invalid format.');
     }
   };
-  reader.readAsText(file);
-  e.target.value='';
+  reader.readAsText(file); e.target.value='';
 }
 
 let viewerOpen=false;
 function toggleViewer() {
-  const el = document.getElementById('dataViewer');
-  viewerOpen = !viewerOpen;
+  const el=document.getElementById('dataViewer');
+  viewerOpen=!viewerOpen;
   if (!viewerOpen) { el.classList.remove('open'); return; }
-
-  const keys = Object.keys(db).sort().reverse();
-  if (!keys.length) {
-    el.textContent = 'No data yet — start tracking today!';
-  } else {
+  const keys=Object.keys(db).sort().reverse();
+  if (!keys.length) { el.textContent='No data yet — start tracking today!'; }
+  else {
     let out='';
     for (const ds of keys) {
-      const d   = db[ds];
-      const date= new Date(ds+'T00:00:00');
-      const lbl = date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
-      out += `── ${lbl} ──────────────────────\n`;
-      out += `  Gym          ${d.gym        ? '✓ done'      : '✗'}\n`;
-      out += `  Meditation   ${d.meditation ? '✓ done'      : '✗'}\n`;
-      out += `  No Junk Food ${d.noJunkFood ? '✓ done'      : '✗'}\n`;
-      out += `  Water        ${d.water||0} glasses ${(d.water||0)>=8?'✓ (goal met)':'✗ (goal: 8)'}\n`;
-      out += `  Reading      ${d.reading||0} min ${(d.reading||0)>=20?'✓ (goal met)':'✗ (goal: 20)'}\n\n`;
+      const d=db[ds];
+      const date=new Date(ds+'T00:00:00');
+      const lbl=date.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+      out+=`── ${lbl} ──────────────────────\n`;
+      out+=`  Gym          ${d.gym?'✓':'✗'}\n`;
+      out+=`  Meditation   ${d.meditation?'✓':'✗'}\n`;
+      out+=`  No Junk Food ${d.noJunkFood?'✓':'✗'}\n`;
+      out+=`  Water        ${d.water||0} glasses ${(d.water||0)>=cfg.waterGoal?'✓':'✗'} (goal:${cfg.waterGoal})\n`;
+      out+=`  Reading      ${d.reading||0} min ${(d.reading||0)>=cfg.readGoal?'✓':'✗'} (goal:${cfg.readGoal})\n`;
+      out+=`  Running      ${d.running||0} km ${(d.running||0)>=cfg.runGoal?'✓':'✗'} (goal:${cfg.runGoal})\n`;
+      out+=`  Weight       ${d.weight!=null?d.weight+' kg':'—'}\n\n`;
     }
-    el.textContent = out.trimEnd();
+    el.textContent=out.trimEnd();
   }
   el.classList.add('open');
 }
@@ -905,7 +1371,9 @@ function toggleViewer() {
 // ═══════════════════════════════════════════════════════
 //  Boot
 // ═══════════════════════════════════════════════════════
+loadCfg();
 load();
+populateSettingsUI();
 renderToday();
 </script>
 </body>
